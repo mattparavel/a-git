@@ -101,7 +101,8 @@ AGX.scene({
     g.alpha(treeIn, () => {
       // Which tree this is: the parent's snapshot, then the derived one.
       // Fade the old label out before the new one comes in, so they never overlap.
-      g.text('root tree of parent ' + PARENT, 870, 326, { size: 18, font: 'mono', color: C.muted, alpha: 1 - g.at(13.1, 0.3) });
+      g.text('root tree of parent ' + PARENT, 870, 326, { size: 18, font: 'mono', color: C.muted, alpha: 1 - g.at(8.0, 0.3) });
+      g.text('applying the changes to that tree', 870, 326, { size: 18, font: 'mono', color: C.amber, alpha: g.at(8.3, 0.3) * (1 - g.at(13.1, 0.3)) });
       g.text('root tree of ' + SELF + ' (derived)', 870, 326, { size: 18, font: 'mono', color: C.violet, alpha: g.at(13.4, 0.4) });
 
       // Edges first.

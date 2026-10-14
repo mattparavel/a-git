@@ -122,9 +122,12 @@
     // Progress (0..1) of an animation that starts at `start` seconds and
     // lasts `dur` seconds, in scene-local time.
     at(start, dur, e) {
-      const fn = typeof e === 'function' ? e : ease[e || 'inOut'];
+      const fn = typeof e === 'function' ? e : ease[e] || ease.inOut;
       if (dur <= 0) return this.t >= start ? 1 : 0;
-      return fn(clamp01((this.t - start) / dur));
+      const u = (this.t - start) / dur;
+      if (u <= 0) return 0;
+      if (u >= 1) return 1;
+      return fn(u);
     }
 
     // Fade in at `start`, optionally fade out at `end`.
@@ -404,6 +407,7 @@
 
     path(pts, o) {
       o = o || {};
+      if (o.progress !== undefined && o.progress <= 1e-6) return;
       const shown = o.progress === undefined ? pts : this.partial(pts, o.progress);
       if (shown.length < 2) return;
       const ctx = this.ctx;
@@ -708,6 +712,8 @@
   }
 
   const FADE = 0.45;
+  const END_FADE = 0.8; // the whole frame fades to the background at the very end
+  let layer = null;
 
   function renderAt(canvas, t, opts) {
     opts = opts || {};
@@ -732,12 +738,44 @@
     let a = 1;
     if (loc.index > 0) a = Math.min(a, clamp01(loc.local / FADE));
     if (loc.index < scenes.length - 1) a = Math.min(a, clamp01((s.duration - loc.local) / FADE));
-    g.alpha(a, () => {
+    if (a >= 0.999) {
       ctx.save();
       s.draw(g, loc.local, s.duration);
       ctx.restore();
-    });
+    } else if (a > 0.001) {
+      // Draw the scene at full opacity offscreen, then composite it with the
+      // fade alpha; fading each draw call would let lines show through fills.
+      if (!layer || layer.width !== canvas.width || layer.height !== canvas.height) {
+        layer = document.createElement('canvas');
+        layer.width = canvas.width;
+        layer.height = canvas.height;
+      }
+      const lctx = layer.getContext('2d');
+      lctx.setTransform(1, 0, 0, 1, 0, 0);
+      lctx.clearRect(0, 0, layer.width, layer.height);
+      lctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+      const lg = new Graphics(lctx);
+      lg.t = loc.local;
+      lg.d = s.duration;
+      lctx.save();
+      s.draw(lg, loc.local, s.duration);
+      lctx.restore();
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = a;
+      ctx.drawImage(layer, 0, 0);
+      ctx.restore();
+    }
     if (opts.captions !== false) drawCaption(g, s, loc.local);
+    if (loc.index === scenes.length - 1) {
+      const end = clamp01((s.duration - loc.local) / END_FADE);
+      if (end < 1) {
+        ctx.save();
+        ctx.globalAlpha = 1 - end;
+        drawBackground(ctx);
+        ctx.restore();
+      }
+    }
     if (opts.debug) {
       g.box(SAFE.x, SAFE.y, SAFE.w, SAFE.h, { stroke: 'rgba(255,0,255,0.6)', dash: [10, 8], radius: 0 });
       g.text(`${s.id}  t=${loc.local.toFixed(2)}s`, W - 110, SAFE.y - 12, { size: 18, font: 'mono', color: '#ff66ff', align: 'right' });

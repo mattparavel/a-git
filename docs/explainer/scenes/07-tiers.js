@@ -140,7 +140,7 @@ AGX.scene({
     const [mx, my] = g.pointAt(pts, 0.5);
     g.alpha(g.vis(T.rule + 0.5), () => {
       g.icon('cross', mx, my, 30, { color: C.coral, stroke: 5 });
-      g.text('refused (421): calls from a peer or a higher tier', mx, my + 50, { size: 20, color: C.coral, align: 'center' });
+      g.text('refused: calls from the same or a higher tier', mx, my + 50, { size: 20, color: C.coral, align: 'center' });
     });
   },
 });

@@ -3,7 +3,7 @@ AGX.scene({
   id: 'recap',
   order: 13,
   title: 'Recap',
-  duration: 16,
+  duration: 17,
   captions: [
     { at: 0, text: 'Always-online clients, a server that does the work, changesets + derived data, lock-free commits, tiered caches.' },
     { at: 8.0, text: "That's a-git. scripts/demo.sh builds it, starts all three tiers and drives the main workflows." },
@@ -33,8 +33,11 @@ AGX.scene({
     };
 
     const ROW0 = 0.4, STEP = 1.3;   // rows land as the caption reaches them
-    const outro = 1 - g.at(14.4, 0.6);
-    const endCard = g.vis(14.7) * (1 - g.at(15.5, 0.5));
+    // The footer is in by 12.0 and holds ~1.9 s; then the content fades out
+    // and the closing card fades in after it and stays on to the last frame
+    // (the engine cannot fade the chrome or caption, so end on the card).
+    const outro = 1 - g.at(13.9, 0.5);
+    const endCard = g.vis(14.4);
 
     g.alpha(outro, () => {
       g.heading('a-git in five ideas', { alpha: g.vis(0) });
