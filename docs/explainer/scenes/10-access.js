@@ -3,12 +3,12 @@ AGX.scene({
   id: 'access',
   order: 10,
   title: 'Access control',
-  duration: 14,
+  duration: 15,
   captions: [
     { at: 0, text: 'Access control works per repository and per directory. The most specific rule wins.' },
-    { at: 6, text: 'Caches ask the server before handing out restricted objects, so a secret cached on a shared daemon never reaches the wrong person.' },
+    { at: 5.6, text: 'Caches ask the server what each caller may read, so a secret cached on a shared daemon never reaches the wrong person.' },
   ],
-  draw(g, t) {
+  draw(g) {
     const C = g.C;
     g.heading('Access control down to the directory', { alpha: g.vis(0) });
 
@@ -34,10 +34,9 @@ AGX.scene({
     ];
     rules.forEach((r, i) => {
       const yy = 680 + i * 54;
-      const lit = r[1] === 'secrets/' && t > 3.6;
       g.alpha(g.stagger(i, 2.0, 0.25, 0.4), () => {
         g.text(r[0], lx + 30, yy, { size: 22, font: 'mono', color: C.ink });
-        g.text(r[1], lx + 290, yy, { size: 22, font: 'mono', color: lit ? C.coral : C.muted });
+        g.text(r[1], lx + 290, yy, { size: 22, font: 'mono', color: r[1] === 'secrets/' ? g.mix(C.muted, C.coral, g.at(3.6, 0.4)) : C.muted });
         g.text(r[2], lx + 470, yy, { size: 22, font: 'mono', color: C.amber });
       });
     });
@@ -46,37 +45,55 @@ AGX.scene({
     });
 
     // Shared daemon with a cached secret, two users and the server.
-    const D = { x: 1180, y: 560 }, S = { x: 1640, y: 560 };
+    const D = { x: 1180, y: 560 }, S = { x: 1680, y: 560 };
     const bob = { x: 880, y: 380 }, carol = { x: 880, y: 760 };
-    g.alpha(g.vis(4.0), () => {
+    const gapX = (D.x + 115 + S.x - 125) / 2; // centre of the daemon-server gap
+    g.alpha(g.vis(5.4), () => {
       g.node(D.x, D.y, { icon: 'db', label: 'agitd', sub: 'shared machine', color: '#7FB8E8', w: 230, h: 200 });
       g.node(S.x, S.y, { icon: 'server', label: 'agit-server', sub: 'checks policy', color: C.teal, w: 250, h: 200 });
       g.line(D.x + 115, D.y, S.x - 125, D.y, { color: C.line, width: 3 });
-      g.chip('5d1e… secrets/key', D.x, D.y + 140, { color: C.coral, align: 'center', size: 18 });
-      g.text('cached for carol earlier', D.x, D.y + 182, { size: 18, color: C.muted, align: 'center' });
+      g.icon('lock', D.x - 112, D.y + 139, 24, { color: C.coral, stroke: 8 });
+      g.chip('5d1e… secrets/key', D.x + 10, D.y + 140, { color: C.amber, align: 'center', size: 18 });
+      g.text('fetched by carol earlier', D.x, D.y + 182, { size: 18, color: C.muted, align: 'center' });
     });
-    g.alpha(g.vis(4.4), () => {
+    g.alpha(g.vis(5.7), () => {
+      g.line(bob.x + 75, bob.y, D.x - 115, D.y - 50, { color: C.line, width: 2 });
+      g.line(carol.x + 75, carol.y, D.x - 115, D.y + 50, { color: C.line, width: 2 });
       g.node(bob.x, bob.y, { icon: 'agent', label: 'bob', color: C.blue, w: 150, h: 130, labelFont: 'body', labelSize: 22 });
       g.node(carol.x, carol.y, { icon: 'agent', label: 'carol', color: C.blue, w: 150, h: 130, labelFont: 'body', labelSize: 22 });
     });
 
-    // Bob asks for the blob by hash.
+    // The daemon asks the server about this caller, then answers.
+    const ask = [[D.x + 115, D.y - 24], [S.x - 125, D.y - 24]];
+    const reply = [[S.x - 125, D.y + 24], [D.x + 115, D.y + 24]];
+    const check = (start, who, ok) => {
+      g.packet(ask, g.at(start, 0.7), { color: C.violet });
+      g.alpha(g.vis(start, start + 0.7, 0.2), () => g.chip(`may ${who} read this?`, gapX, D.y - 54, { align: 'center', size: 17, color: C.violet }));
+      const r0 = start + 0.8, col = ok ? C.mint : C.coral;
+      g.packet(reply, g.at(r0, 0.6), { color: col });
+      g.alpha(g.vis(r0, r0 + 0.6, 0.2), () => g.chip(ok ? 'yes' : 'no', gapX, D.y + 54, { align: 'center', size: 17, color: col }));
+    };
+
+    // Bob asks for the blob by hash and is refused.
     const bobPath = [[bob.x + 75, bob.y], [D.x - 115, D.y - 50]];
-    g.packet(bobPath, g.at(6.2, 0.9), { color: C.blue, label: 'GET 5d1e…', size: 17 });
-    g.packet([[D.x + 115, D.y - 24], [S.x - 125, D.y - 24]], g.at(7.2, 0.7), { color: C.amber, label: 'may bob read this?', size: 17, dy: -30 });
-    g.packet([[S.x - 125, D.y + 24], [D.x + 115, D.y + 24]], g.at(8.0, 0.6), { color: C.coral, label: 'no', size: 17, dy: 30 });
-    g.alpha(g.vis(8.6), () => {
+    g.packet(bobPath, g.at(6.2, 0.9), { color: C.blue });
+    g.alpha(g.vis(6.2, 7.0, 0.2), () => g.chip('GET 5d1e…', 975, 340, { size: 17, color: C.blue }));
+    check(7.2, 'bob', false);
+    g.packet(bobPath.slice().reverse(), g.at(8.6, 0.5), { color: C.coral });
+    g.alpha(g.vis(9.1), () => {
       g.icon('cross', bob.x + 130, bob.y - 10, 36, { color: C.coral, stroke: 5 });
       g.text('403 forbidden', bob.x + 160, bob.y + 4, { size: 21, font: 'mono', color: C.coral });
     });
 
-    // Carol gets it straight from the daemon's disk.
+    // Carol is checked too, then served from the daemon's disk.
     const carolPath = [[carol.x + 75, carol.y], [D.x - 115, D.y + 50]];
-    g.packet(carolPath, g.at(10.0, 0.8), { color: C.blue, label: 'GET 5d1e…', size: 17, dy: 30 });
-    g.packet(carolPath.slice().reverse(), g.at(11.0, 0.7), { color: C.amber });
-    g.alpha(g.vis(11.6), () => {
-      g.icon('check', carol.x + 130, carol.y - 10, 32, { color: C.mint, stroke: 5 });
-      g.text('served from cache', carol.x + 160, carol.y + 4, { size: 21, font: 'mono', color: C.mint });
+    g.packet(carolPath, g.at(9.8, 0.8), { color: C.blue });
+    g.alpha(g.vis(9.8, 10.5, 0.2), () => g.chip('GET 5d1e…', 975, 800, { size: 17, color: C.blue }));
+    check(10.7, 'carol', true);
+    g.packet(carolPath.slice().reverse(), g.at(12.2, 0.7), { color: C.amber });
+    g.alpha(g.vis(12.9), () => {
+      g.icon('check', carol.x + 130, carol.y + 32, 32, { color: C.mint, stroke: 5 });
+      g.text('allowed · served from cache', carol.x + 160, carol.y + 46, { size: 21, font: 'mono', color: C.mint });
     });
   },
 });

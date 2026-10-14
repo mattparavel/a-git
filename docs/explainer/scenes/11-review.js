@@ -3,41 +3,47 @@ AGX.scene({
   id: 'review',
   order: 11,
   title: 'Semantic code review',
-  duration: 18,
+  duration: 21,
   captions: [
-    { at: 0, text: 'Reviews use semantic rules. A REVIEWERS file names who owns each directory.' },
-    { at: 6, text: 'When a new revision changes only comments or whitespace, approvals carry over. A language-aware classifier decides.' },
-    { at: 12, text: 'A logic change makes them stale, so reviewers re-read only what matters. Landing records which review shipped each changeset.' },
+    { at: 0, text: 'A REVIEWERS file names who owns each directory. Carol, in group:payments, approves R7.' },
+    { at: 6.2, text: 'Each revision is classified against the last. Comment or whitespace edits keep approvals.' },
+    { at: 12.2, text: 'A logic change makes them stale, so carol re-reads it. Landing records which review shipped it.' },
   ],
   draw(g, t) {
     const C = g.C;
     g.heading('Reviews that know what changed', { alpha: g.vis(0) });
 
-    // REVIEWERS file.
+    // REVIEWERS file. The path is drawn in mono (card titles are uppercased).
     const lx = 110;
     g.alpha(g.vis(0.3), () => {
-      g.card(lx, 300, 520, 200, { title: 'pay/REVIEWERS', color: C.amber });
+      g.card(lx, 300, 520, 200, { color: C.amber });
+      g.text('pay/REVIEWERS', lx + 22, 336, { size: 20, font: 'mono', weight: 600, color: C.amber });
       g.code([
         [['group:payments', C.ink]],
-        [['!trivial any', C.violet], ['   # docs-only: anyone', C.dim]],
-      ], lx + 30, 392, { size: 22 });
+        [['!trivial any', C.violet]],
+        [['# trivial: 1 from any non-author', C.muted]],
+      ], lx + 30, 390, { size: 22 });
     });
 
-    // Classification ladder.
+    // Classification ladder. Rows light up only when a revision's interdiff
+    // (its change against the previous revision) has been classified.
     const classes = ['identical', 'whitespace', 'comments', 'docs', 'logic'];
-    const current = t < 6 ? 4 : t < 11.6 ? 2 : 4;
-    g.alpha(g.vis(1.0), () => {
+    const lit = [0, 0, g.vis(8.0, 13.2), 0, g.vis(13.6)];
+    const rowY = (i) => 596 + i * 52; // top of row box
+    g.alpha(g.vis(5.8), () => {
       g.card(lx, 530, 520, 350, { title: 'change class', color: C.violet });
       classes.forEach((c, i) => {
-        const yy = 610 + i * 52;
-        const on = i === current && t > 1.5;
+        const top = rowY(i);
+        const a = lit[i];
         const keeps = i <= 2;
-        g.box(lx + 30, yy - 30, 460, 42, {
-          fill: on ? g.rgba(keeps ? C.mint : C.coral, 0.2) : 'rgba(0,0,0,0)',
-          stroke: on ? g.rgba(keeps ? C.mint : C.coral, 0.9) : C.lineSoft, radius: 8,
-        });
-        g.text(c, lx + 52, yy - 2, { size: 22, font: 'mono', color: on ? C.ink : C.muted });
-        g.text(keeps ? 'approval carries over' : 'needs fresh approval', lx + 470, yy - 2, { size: 17, color: keeps ? C.mint : C.coral, align: 'right', alpha: on ? 1 : 0.5 });
+        const col = keeps ? C.mint : C.coral;
+        g.box(lx + 30, top, 460, 42, { stroke: C.lineSoft, radius: 8 });
+        if (a > 0.001) {
+          g.box(lx + 30, top, 460, 42, { fill: g.rgba(col, 0.2 * a), stroke: g.rgba(col, 0.9 * a), radius: 8 });
+        }
+        g.text(c, lx + 52, top + 28, { size: 22, font: 'mono', color: g.mix(C.muted, C.ink, a) });
+        g.text(keeps ? 'approval carries over' : 'needs fresh approval', lx + 470, top + 28,
+          { size: 18, color: col, align: 'right', alpha: 0.75 + 0.25 * a });
       });
     });
 
@@ -48,48 +54,74 @@ AGX.scene({
     });
     const revs = [
       {
-        at: 1.2, n: 'r1', cls: 'logic', col: C.coral,
+        at: 1.2, n: 'rev 1', cls: 'first', col: C.blue,
         diff: [['- ', C.coral, 'return 1'], ['+ ', C.mint, 'return 2']],
       },
       {
-        at: 6.2, n: 'r2', cls: 'comments', col: C.mint,
+        at: 6.6, n: 'rev 2', cls: 'vs rev 1: comments', col: C.mint,
         diff: [['- ', C.coral, '// Charge charges.'], ['+ ', C.mint, '// Charge charges twice.']],
       },
       {
-        at: 11.8, n: 'r3', cls: 'logic', col: C.coral,
+        at: 12.4, n: 'rev 3', cls: 'vs rev 2: logic', col: C.coral,
         diff: [['- ', C.coral, 'return 2'], ['+ ', C.mint, 'return 3']],
       },
     ];
-    const cw = 350, gap = 20;
+    const cw = 350, gap = 20, ry = 370, rh = 190;
     revs.forEach((r, i) => {
-      const x = rx + i * (cw + gap), y = 370;
+      const x = rx + i * (cw + gap);
       g.alpha(g.at(r.at, 0.45, 'out'), () => {
-        g.card(x, y, cw, 230, { title: r.n, color: C.blue });
-        g.chip(r.cls, x + cw - 20, y + 30, { color: r.col, size: 17, align: 'right' });
+        g.card(x, ry, cw, rh, { title: r.n, color: C.blue });
+        g.chip(r.cls, x + cw - 20, ry + 30, { color: r.col, size: 17, align: 'right' });
         r.diff.forEach(([sign, col, text], j) => {
-          g.text(sign + text, x + 24, y + 100 + j * 40, { size: 19, font: 'mono', color: col, maxWidth: cw - 44 });
+          g.text(sign + text, x + 24, ry + 100 + j * 40, { size: 19, font: 'mono', color: col, maxWidth: cw - 44 });
         });
       });
     });
 
-    // Approval state under the revisions.
-    const ay = 660;
-    g.alpha(g.vis(2.6), () => g.card(rx, ay, 1110, 220, { title: 'approvals', color: C.mint }));
-    const approvalLine = (x, label, col, start, end) => g.alpha(g.vis(start, end), () => {
-      g.chip(label, x, ay + 100, { color: col, size: 20 });
-    });
-    approvalLine(rx + 30, 'carol ✓ r1', C.mint, 3.2);
-    approvalLine(rx + 30 + cw + gap, 'carried over to r2', C.mint, 7.4, 11.8);
-    approvalLine(rx + 30 + cw + gap, 'stale after r3', C.coral, 12.6);
-    approvalLine(rx + 30 + 2 * (cw + gap), 'carol ✓ r3', C.mint, 14.2);
+    // Interdiff arrows: from a revision card, through the gap above the
+    // approvals card, into the ladder row the classifier picked.
+    const interdiff = (i, row, start, end) => {
+      const cx = rx + i * (cw + gap) + cw / 2;
+      const yMid = 610, xGut = 665, yRow = rowY(row) + 21;
+      const pts = [[cx, ry + rh + 2], [cx, yMid], [xGut, yMid], [xGut, yRow], [lx + 30 + 460 + 6, yRow]];
+      g.alpha(g.vis(start, end), () => {
+        g.path(pts, { color: C.violet, width: 2.5, head: true, progress: g.at(start, 0.7, 'inOut') });
+        g.alpha(g.vis(start + 0.1), () => g.chip('interdiff', cx + 14, 586, { color: C.violet, size: 17 }));
+      });
+    };
+    interdiff(1, 2, 7.3, 11.8);
+    interdiff(2, 4, 12.9);
 
-    const status = t < 3.2 ? ['/pay needs 1 approval from group:payments', C.coral]
-      : t < 12.6 ? ['approved · ready to land', C.mint]
-        : t < 14.2 ? ['/pay needs 1 approval from group:payments', C.coral]
-          : t < 15.6 ? ['approved · ready to land', C.mint]
-            : ['landed as 7d78055e2afa · review R7', C.teal];
-    g.alpha(g.vis(2.8), () => {
-      g.text(status[0], rx + 30, ay + 168, { size: 22, font: 'mono', color: status[1] });
+    // Approval state under the revisions.
+    const ay = 660, cy = ay + 100;
+    const col = (i) => rx + 30 + i * (cw + gap);
+    g.alpha(g.vis(2.2), () => g.card(rx, ay, 1090, 220, { title: 'approvals', color: C.mint }));
+    // An approval chip that can later turn stale (dimmed coral, struck through).
+    const approval = (x, label, color, start, end, staleAt) => g.alpha(g.vis(start, end), () => {
+      const s = staleAt === undefined ? 0 : g.vis(staleAt);
+      g.alpha(1 - s, () => g.chip(label, x, cy, { color, size: 20 }));
+      g.alpha(s, () => {
+        const w = g.chip(label, x, cy, { color: C.coral, size: 20, alpha: 0.7 });
+        g.line(x + 10, cy, x + w - 10, cy, { color: C.coral, width: 1.5, alpha: 0.85 });
+      });
     });
+    approval(col(0), 'carol ✓ rev 1', C.mint, 4.3, null, 14.1);
+    approval(col(1), 'carried over to rev 2', C.mint, 8.8, null, 14.1);
+    approval(col(2), 'stale after rev 3', C.coral, 14.1, 15.9);
+    approval(col(2), 'carol ✓ rev 3', C.mint, 16.3);
+
+    // Status line, as `agit review show` / `agit review land` print it.
+    const needs = '=> /pay needs 1 approval(s) from group:payments, has 0';
+    const ok = '=> approved, ready to land';
+    const status = [
+      [needs, C.coral, 2.6, 4.75],
+      [ok, C.mint, 5.0, 14.15],
+      [needs, C.coral, 14.4, 16.45],
+      [ok, C.mint, 16.7, 17.95],
+      ['landed review 7 on main: 3f9c2a1b8e04 -> 7d78055e2afa', C.teal, 18.2, null],
+    ];
+    status.forEach(([str, color, start, end]) => g.alpha(g.vis(start, end, 0.25), () => {
+      g.text(str, rx + 30, ay + 168, { size: 22, font: 'mono', color });
+    }));
   },
 });
