@@ -7,7 +7,7 @@
 
 <div class="wrap">
   <header>
-    <div class="eyebrow"><span>Animated explainer</span><span id="runtime"><b>4:00</b> runtime</span><span>12 chapters</span></div>
+    <div class="eyebrow"><span>Animated explainer</span><span id="runtime"><b>4:47</b> runtime</span><span>12 chapters</span></div>
     <h1>a-git for Beginners</h1>
     <p class="lede">A gentle tour of a-git for anyone who knows a little Git: commits, branches, push and pull. It covers what changes, why it helps, and what stays familiar. No internals required.</p>
   </header>
@@ -24,10 +24,10 @@
         <button class="play" id="play" type="button" aria-label="Play">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path id="playIcon" d="M5 3l16 9-16 9z"/></svg>
         </button>
-        <span class="time" id="time">0:00 / 4:00</span>
+        <span class="time" id="time">0:00 / 4:47</span>
         <div class="scrub">
           <div class="ticks" id="ticks"></div>
-          <input id="scrub" type="range" min="0" max="240" step="0.01" value="0" aria-label="Seek">
+          <input id="scrub" type="range" min="0" max="288" step="0.01" value="0" aria-label="Seek">
         </div>
         <button id="cc" type="button" aria-pressed="true" title="Captions (C)">CC</button>
         <select id="speed" aria-label="Playback speed">
@@ -50,6 +50,7 @@
     <h2>Narration</h2>
     <div id="transcript"></div>
     <p class="note">Keyboard: <code>Space</code> play or pause, <code>←</code> <code>→</code> skip 5 seconds, <code>C</code> captions, <code>F</code> full screen.</p>
+    <p class="note">Ready for the details? The technical tour, <a href="https://claude.ai/artifact/7pPEgFZb9Yw1u2VBx7zf3p">How a-git Works</a>, covers changesets, derived data, lock-free landing and the caching tiers.</p>
   </div>
 </div>
 
@@ -59,11 +60,11 @@
 <script src="scenes-beginner/02-refresher.js"></script>
 <script src="scenes-beginner/03-catch.js"></script>
 <script src="scenes-beginner/04-idea.js"></script>
-<script src="scenes-beginner/05-commit.js"></script>
-<script src="scenes-beginner/06-land.js"></script>
-<script src="scenes-beginner/07-folders.js"></script>
-<script src="scenes-beginner/08-copies.js"></script>
-<script src="scenes-beginner/09-daily.js"></script>
+<script src="scenes-beginner/05-folders.js"></script>
+<script src="scenes-beginner/06-commit.js"></script>
+<script src="scenes-beginner/07-land.js"></script>
+<script src="scenes-beginner/08-daily.js"></script>
+<script src="scenes-beginner/09-copies.js"></script>
 <script src="scenes-beginner/10-teams.js"></script>
 <script src="scenes-beginner/11-git.js"></script>
 <script src="scenes-beginner/12-recap.js"></script>

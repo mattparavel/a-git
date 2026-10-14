@@ -90,7 +90,7 @@ window.BK = (function () {
     const col = o.color || C.muted;
     g.icon('folder', x, y - 8, 34, { color: col, stroke: 8 });
     g.text(name, x + 34, y, { size: o.size || 24, font: 'mono', color: o.dim ? C.dim : C.ink });
-    if (o.note) g.text(o.note, x + 34 + g.measure(name, { size: o.size || 24, font: 'mono' }) + 18, y, { size: 19, color: o.noteColor || C.muted });
+    if (o.note) g.text(o.note, x + 34 + g.measure(name, { size: o.size || 24, font: 'mono' }) + 18, y, { size: 20, color: o.noteColor || C.muted });
   }
 
   return { person, helper, bubble, stack, file, folder };
