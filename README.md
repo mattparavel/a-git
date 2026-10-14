@@ -131,10 +131,11 @@ working copy's changeset): for example `main~3`, `@^`, or `9f2c1e^2`.
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture, data model and
 protocol, and how each piece maps to the ideas in the article.
 
-For a guided tour, open the animated explainer in
-[docs/explainer/](docs/explainer/README.md). It runs in the browser (open
-`index.html`) and is rendered to `a-git-explainer.mp4` with
-`node scripts/explainer/render.mjs`.
+For a guided tour, see the animated explainers in
+[docs/explainer/](docs/explainer/README.md): a technical one
+(`index.html`, `a-git-explainer.mp4`) and one for people new to Git
+(`beginner.html`, `a-git-for-beginners.mp4`). Both run in the browser and
+are rendered to video with `node scripts/explainer/render.mjs`.
 
 ## Configuration
 

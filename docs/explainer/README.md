@@ -1,19 +1,25 @@
 # a-git explainer
 
-An animated explainer of how a-git works, written in plain JavaScript on a
-canvas. The same code drives the interactive player (`index.html`) and the
-rendered video (`a-git-explainer.mp4`).
+Two animated explainers of a-git, written in plain JavaScript on a canvas.
+The same code drives each interactive player and its rendered video.
+
+| Video | Audience | Player | Scenes | Rendered |
+|---|---|---|---|---|
+| How a-git Works | engineers | `index.html` | `scenes/` | `a-git-explainer.mp4` |
+| a-git for Beginners | people who know basic Git | `beginner.html` | `scenes-beginner/` | `a-git-for-beginners.mp4` |
 
 ```sh
 # Watch it: open docs/explainer/index.html in a browser.
 
-# Render the MP4 (headless Chromium + ffmpeg):
+# Render the MP4s (headless Chromium + ffmpeg):
 node scripts/explainer/render.mjs --out docs/explainer/a-git-explainer.mp4
+node scripts/explainer/render.mjs --page beginner.html --out docs/explainer/a-git-for-beginners.mp4
 
 # Inspect frames while editing a scene (scene-local seconds):
 node scripts/explainer/snap.mjs --scene changesets --times 3,9.5 --out /tmp/snaps
 node scripts/explainer/snap.mjs --scene 04 --sheet 8 --debug --out /tmp/snaps
 node scripts/explainer/snap.mjs --all --sheet 6 --out /tmp/snaps
+node scripts/explainer/snap.mjs --page beginner.html --all --sheet 6 --out /tmp/snaps
 ```
 
 `--debug` draws the safe area (magenta) and the scene-local time. `snap.mjs`
@@ -26,8 +32,11 @@ exits non-zero and prints `PAGE ERRORS` if a script throws.
   `g.code`, `g.terminal`, `g.icon`, ...) and `renderAt(canvas, t)`.
 - Each file in `scenes/` calls `AGX.scene({ id, order, title, duration,
   captions, draw(g, t, d) })`. Scenes play in `order`.
-- `index.html` lists the scene scripts. The render and snapshot tools read
-  that list, so it is the single source of truth for scene order.
+- `index.html` and `beginner.html` each list their scene scripts. The render
+  and snapshot tools read that list (choose a page with `--page`); scenes
+  play in their `order`. Both pages share `player.js` and `player.css`.
+- `scenes-beginner/00-kit.js` holds friendly drawing helpers (people, speech
+  bubbles, files, folders) used by the beginner scenes.
 
 ## Rules for scenes
 
