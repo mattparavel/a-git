@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 // Add an ElevenLabs voiceover to an explainer video.
 //
-//   ELEVENLABS_API_KEY=... node scripts/explainer/voiceover.mjs --page beginner.html
+//   node scripts/explainer/voiceover.mjs --page beginner.html
+//
+// The API key comes from ELEVENLABS_API_KEY, or from a network secret that
+// the environment's proxy attaches to requests for api.elevenlabs.io (header
+// xi-api-key, no prefix). In that case the key never reaches this process.
 //
 // Options:
 //   --page   beginner.html | index.html        which explainer to narrate
@@ -22,8 +26,18 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, resolve, basename } from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { loadPlaywright, openRenderer, EXPLAINER_DIR } from './lib.mjs';
+
+// Node's fetch ignores HTTPS_PROXY unless NODE_USE_ENV_PROXY is set
+// (Node 22.21 and later), so re-run under it when a proxy is configured.
+if ((process.env.HTTPS_PROXY || process.env.https_proxy) && !process.env.NODE_USE_ENV_PROXY) {
+  const r = spawnSync(process.execPath, [...process.execArgv, ...process.argv.slice(1)], {
+    stdio: 'inherit',
+    env: { ...process.env, NODE_USE_ENV_PROXY: '1', NODE_NO_WARNINGS: '1' },
+  });
+  process.exit(r.status ?? 1);
+}
 
 const args = process.argv.slice(2);
 const opt = (name, def) => {
@@ -89,10 +103,7 @@ if (planOnly) {
 }
 
 const key = process.env.ELEVENLABS_API_KEY;
-if (!key) {
-  console.error('ELEVENLABS_API_KEY is not set. Add it to the environment (see docs/explainer/README.md).');
-  process.exit(2);
-}
+if (!key) console.log('ELEVENLABS_API_KEY is not set; relying on a network secret for api.elevenlabs.io.');
 if (!existsSync(video)) {
   console.error(`video not found: ${video} (render it first with scripts/explainer/render.mjs)`);
   process.exit(2);
@@ -101,7 +112,20 @@ mkdirSync(outDir, { recursive: true });
 
 // 2. Find the voice by name (or accept a voice ID).
 async function api(path, init = {}) {
-  const res = await fetch(API + path, { ...init, headers: { 'xi-api-key': key, ...(init.headers || {}) } });
+  const headers = { ...(key ? { 'xi-api-key': key } : {}), ...(init.headers || {}) };
+  let res;
+  try {
+    res = await fetch(API + path, { ...init, headers });
+  } catch (e) {
+    console.error(`Cannot reach ${API} (${e.cause?.message || e.message}). If a proxy is in use, the network policy may block`
+      + ' api.elevenlabs.io: allow it, or add the key as a network secret for that host (see docs/explainer/README.md).');
+    process.exit(2);
+  }
+  if (res.status === 401 && !key) {
+    console.error('ElevenLabs rejected the request as unauthenticated. Set ELEVENLABS_API_KEY, or add a network secret'
+      + ' for api.elevenlabs.io with the header xi-api-key and no prefix.');
+    process.exit(2);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`ElevenLabs ${init.method || 'GET'} ${path}: HTTP ${res.status} ${body.slice(0, 400)}`);

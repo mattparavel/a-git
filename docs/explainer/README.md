@@ -78,13 +78,25 @@ exits non-zero and prints `PAGE ERRORS` if a script throws.
 (default: Chris). Each caption becomes one clip, placed where the caption
 appears, and the result is muxed into a copy of the rendered MP4.
 
-Setup, once per environment:
+Setup, once per cloud environment. Open the environment's settings at
+claude.ai/code: click the cloud icon with the environment's name, in the
+row above the message box, then hover over the environment and click the
+gear icon. The ElevenLabs key needs Text to Speech, plus read access to
+Voices so the voice can be found by name. Then do one of these:
 
-1. Allow the host `api.elevenlabs.io` in the environment's network access
-   settings.
-2. Store an ElevenLabs API key as `ELEVENLABS_API_KEY` (a network secret or
-   an environment variable). It needs Text to Speech, plus read access to
-   Voices so the voice can be found by name.
+- **Network secret** (Pro and Max plans). Under **Network secrets**, choose
+  **Add secret**. Set **Allowed websites** to `api.elevenlabs.io`. Change the
+  header **Name** to `xi-api-key`, clear the **Prefix**, and paste the key as
+  the **Value**. This also opens network access to that host, and the key
+  never enters the session.
+- **Environment variable**. Set **Network access** to **Custom**, add
+  `api.elevenlabs.io` to **Allowed domains**, and tick **Also include default
+  list of common package managers**. Then add
+  `ELEVENLABS_API_KEY=<your key>` under **Environment variables**. Anyone who
+  uses the environment can read it, and only new sessions pick it up.
+
+Node's `fetch` ignores `HTTPS_PROXY`, so the script re-runs itself with
+`NODE_USE_ENV_PROXY=1` when a proxy is configured.
 
 Then:
 
