@@ -71,3 +71,35 @@ exits non-zero and prints `PAGE ERRORS` if a script throws.
 - **Accuracy.** Everything on screen must match the a-git implementation:
   command names and output formats, endpoint paths, header names, derived
   data kinds, file names in `.agit/`, and the REVIEWERS syntax.
+
+## Voiceover (ElevenLabs)
+
+`scripts/explainer/voiceover.mjs` narrates a video with an ElevenLabs voice
+(default: Chris). Each caption becomes one clip, placed where the caption
+appears, and the result is muxed into a copy of the rendered MP4.
+
+Setup, once per environment:
+
+1. Allow the host `api.elevenlabs.io` in the environment's network access
+   settings.
+2. Store an ElevenLabs API key as `ELEVENLABS_API_KEY` (a network secret or
+   an environment variable). It needs Text to Speech, plus read access to
+   Voices so the voice can be found by name.
+
+Then:
+
+```sh
+node scripts/explainer/voiceover.mjs --page beginner.html --plan   # caption windows, no API calls
+node scripts/explainer/voiceover.mjs --page beginner.html          # -> a-git-for-beginners-voiced.mp4
+node scripts/explainer/voiceover.mjs --page index.html             # -> a-git-explainer-voiced.mp4
+```
+
+Clips are cached in `voiceover/<page>/` by text, voice, model and speed, so
+re-running after editing one caption only synthesizes that line. A clip that
+runs past its caption's window is sped up by at most 12%. Anything longer is
+reported, and you fix it by giving that caption more time.
+
+To narrate a player page, add the track to the canvas, for example
+`<canvas id="stage" data-audio="voiceover/beginner/narration.m4a" ...>`, and
+publish that file with the page. The player then shows a Voice toggle (`V`),
+and the audio drives the animation clock while it plays.

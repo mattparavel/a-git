@@ -1,5 +1,7 @@
 // Shared player for the explainer pages: playback, scrubbing, chapters,
-// captions toggle and transcript. Loaded after engine.js and the scenes.
+// captions toggle, optional voiceover and transcript. Loaded after engine.js
+// and the scenes. A page opts into a voiceover by putting the narration
+// track's path in the canvas's data-audio attribute.
 (function () {
   'use strict';
   const AGX = window.AGX;
@@ -28,6 +30,34 @@
   let captions = true;
   let speed = 1;
   let last = 0;
+
+  // Optional voiceover. While it plays, the audio clock drives the
+  // animation so voice and pictures cannot drift apart.
+  const audio = canvas.dataset.audio ? new Audio(canvas.dataset.audio) : null;
+  let voice = !!audio;
+  if (audio) {
+    audio.preload = 'auto';
+    const vBtn = document.createElement('button');
+    vBtn.type = 'button';
+    vBtn.id = 'voice';
+    vBtn.textContent = 'Voice';
+    vBtn.title = 'Voiceover (V)';
+    vBtn.setAttribute('aria-pressed', 'true');
+    ccBtn.parentNode.insertBefore(vBtn, ccBtn);
+    vBtn.addEventListener('click', () => {
+      voice = !voice;
+      vBtn.setAttribute('aria-pressed', String(voice));
+      if (!voice) audio.pause();
+      else if (playing) startAudio();
+    });
+  }
+  const audioLive = () => audio && voice && !audio.paused && !audio.ended;
+  function startAudio() {
+    if (!audio || !voice) return;
+    try { audio.currentTime = t; } catch (e) { /* not seekable yet */ }
+    audio.playbackRate = speed;
+    audio.play().catch(() => { voice = false; });
+  }
 
   function fmt(s) {
     s = Math.max(0, Math.floor(s));
@@ -91,7 +121,10 @@
       if (!started) { started = true; t = 0; }
       if (t >= total - 0.05) t = 0;
       last = performance.now();
+      startAudio();
       requestAnimationFrame(tick);
+    } else if (audio) {
+      audio.pause();
     }
   }
 
@@ -99,7 +132,8 @@
     if (!playing) return;
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
-    t += dt * speed;
+    if (audioLive() && Math.abs(audio.currentTime - t) < 1) t = audio.currentTime;
+    else t += dt * speed;
     if (t >= total) { t = total; render(); setPlaying(false); return; }
     render();
     requestAnimationFrame(tick);
@@ -110,6 +144,7 @@
     bigPlay.hidden = true;
     t = Math.max(0, Math.min(total, to));
     render();
+    if (playing) startAudio();
     if (play && !playing) setPlaying(true);
   }
 
@@ -122,7 +157,10 @@
     ccBtn.setAttribute('aria-pressed', String(captions));
     render();
   });
-  speedSel.addEventListener('change', () => { speed = parseFloat(speedSel.value) || 1; });
+  speedSel.addEventListener('change', () => {
+    speed = parseFloat(speedSel.value) || 1;
+    if (audio) audio.playbackRate = speed;
+  });
   fsBtn.addEventListener('click', () => {
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -140,6 +178,7 @@
     else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(t - 5, false); }
     else if (e.key === 'c' || e.key === 'C') { ccBtn.click(); }
     else if (e.key === 'f' || e.key === 'F') { fsBtn.click(); }
+    else if ((e.key === 'v' || e.key === 'V') && audio) { document.getElementById('voice').click(); }
   });
 
   // Keep the playhead across live updates of the page.
