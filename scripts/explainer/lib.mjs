@@ -21,15 +21,24 @@ export async function loadPlaywright() {
   throw new Error('Playwright not found: npm install playwright (or set NODE_PATH)');
 }
 
+// Resolves a player page name ("index.html", "beginner.html" or a path).
+export function pagePath(page) {
+  return resolve(EXPLAINER_DIR, page || 'index.html');
+}
+
 // Builds a standalone render page that loads the same scripts, in the same
-// order, as the player page (docs/explainer/index.html).
-export function renderPageFile() {
-  const html = readFileSync(join(EXPLAINER_DIR, 'index.html'), 'utf8');
+// order, as a player page (default docs/explainer/index.html). Only plain
+// <script src="..."></script> tags are included; the player script is
+// marked with data-player and skipped.
+export function renderPageFile(page) {
+  const file = pagePath(page);
+  const baseDir = dirname(file);
+  const html = readFileSync(file, 'utf8');
   const fonts = (html.match(/<link rel="stylesheet" href="([^"]+)"/) || [])[1];
   const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) =>
-    pathToFileURL(join(EXPLAINER_DIR, m[1])).href,
+    pathToFileURL(join(baseDir, m[1])).href,
   );
-  const page = `<!doctype html><html><head><meta charset="utf-8">
+  const doc = `<!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="${fonts}">
 <style>html,body{margin:0;background:#000}canvas{display:block;width:1920px;height:1080px}</style>
 </head><body><canvas id="stage" width="1920" height="1080"></canvas>
@@ -60,19 +69,19 @@ window.sheet = (times, opts) => {
 window.__ready = AGX.ready.then(() => true);
 </script></body></html>`;
   const dir = mkdtempSync(join(tmpdir(), 'agx-'));
-  const file = join(dir, 'render.html');
-  writeFileSync(file, page);
-  return file;
+  const out = join(dir, 'render.html');
+  writeFileSync(out, doc);
+  return out;
 }
 
-export async function openRenderer(browser) {
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+export async function openRenderer(browser, page) {
+  const tab = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const errors = [];
-  page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-  await page.goto(pathToFileURL(renderPageFile()).href);
-  await page.evaluate(() => window.__ready);
-  return { page, errors };
+  tab.on('pageerror', (e) => errors.push(String(e)));
+  tab.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await tab.goto(pathToFileURL(renderPageFile(page)).href);
+  await tab.evaluate(() => window.__ready);
+  return { page: tab, errors };
 }
 
 export function decodeDataURL(url) {

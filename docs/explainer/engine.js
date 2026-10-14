@@ -568,6 +568,16 @@
           ctx.beginPath(); ctx.moveTo(-42, 0); ctx.quadraticCurveTo(0, -40, 42, 0); ctx.quadraticCurveTo(0, 40, -42, 0); ctx.stroke();
           ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill();
           break;
+        case 'person':
+          // A simple figure: round head and rounded shoulders.
+          ctx.beginPath(); ctx.arc(0, -22, 20, 0, 7); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(-36, 44); ctx.quadraticCurveTo(-36, 8, 0, 8); ctx.quadraticCurveTo(36, 8, 36, 44); ctx.closePath(); ctx.fill();
+          break;
+        case 'book':
+          rr(-34, -40, 68, 80, 6); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-18, -40); ctx.lineTo(-18, 40); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-4, -18); ctx.lineTo(22, -18); ctx.moveTo(-4, 0); ctx.lineTo(22, 0); ctx.stroke();
+          break;
         case 'git':
           ctx.beginPath(); ctx.moveTo(-20, -34); ctx.lineTo(-20, 34); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(-20, 0); ctx.quadraticCurveTo(22, 0, 22, -26); ctx.stroke();

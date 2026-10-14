@@ -1,0 +1,70 @@
+<title>a-git for Beginners</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="player.css">
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span>Animated explainer</span><span id="runtime"><b>4:00</b> runtime</span><span>12 chapters</span></div>
+    <h1>a-git for Beginners</h1>
+    <p class="lede">A gentle tour of a-git for anyone who knows a little Git: commits, branches, push and pull. It covers what changes, why it helps, and what stays familiar. No internals required.</p>
+  </header>
+
+  <div class="theatre">
+    <div class="player">
+      <div class="screen" id="screen">
+        <canvas id="stage" data-poster="4.5" width="1920" height="1080" aria-label="Animated explainer of a-git for Git beginners" role="img"></canvas>
+        <button class="big-play" id="bigPlay" type="button" aria-label="Play the explainer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l16 9-16 9z" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <div class="controls">
+        <button class="play" id="play" type="button" aria-label="Play">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path id="playIcon" d="M5 3l16 9-16 9z"/></svg>
+        </button>
+        <span class="time" id="time">0:00 / 4:00</span>
+        <div class="scrub">
+          <div class="ticks" id="ticks"></div>
+          <input id="scrub" type="range" min="0" max="240" step="0.01" value="0" aria-label="Seek">
+        </div>
+        <button id="cc" type="button" aria-pressed="true" title="Captions (C)">CC</button>
+        <select id="speed" aria-label="Playback speed">
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.25">1.25×</option>
+          <option value="1.5">1.5×</option>
+        </select>
+        <button id="fs" type="button" title="Full screen (F)">Full screen</button>
+      </div>
+    </div>
+
+    <nav class="chapters" aria-label="Chapters">
+      <h2>Chapters</h2>
+      <ol id="chapterList"></ol>
+    </nav>
+  </div>
+
+  <div class="transcript">
+    <h2>Narration</h2>
+    <div id="transcript"></div>
+    <p class="note">Keyboard: <code>Space</code> play or pause, <code>←</code> <code>→</code> skip 5 seconds, <code>C</code> captions, <code>F</code> full screen.</p>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="scenes-beginner/00-kit.js"></script>
+<script src="scenes-beginner/01-welcome.js"></script>
+<script src="scenes-beginner/02-refresher.js"></script>
+<script src="scenes-beginner/03-catch.js"></script>
+<script src="scenes-beginner/04-idea.js"></script>
+<script src="scenes-beginner/05-commit.js"></script>
+<script src="scenes-beginner/06-land.js"></script>
+<script src="scenes-beginner/07-folders.js"></script>
+<script src="scenes-beginner/08-copies.js"></script>
+<script src="scenes-beginner/09-daily.js"></script>
+<script src="scenes-beginner/10-teams.js"></script>
+<script src="scenes-beginner/11-git.js"></script>
+<script src="scenes-beginner/12-recap.js"></script>
+<script src="player.js" data-player></script>

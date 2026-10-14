@@ -4,7 +4,8 @@
 //   node scripts/explainer/snap.mjs --scene 04 --times 1,4.5,9 --out /tmp/snaps
 //   node scripts/explainer/snap.mjs --scene 04 --sheet 6 --out /tmp/snaps   (contact sheet)
 //   node scripts/explainer/snap.mjs --all --sheet 6 --out /tmp/snaps        (one sheet per scene)
-//   add --debug to outline the safe area; --no-captions to hide captions.
+//   add --debug to outline the safe area; --no-captions to hide captions;
+//   --page beginner.html to render the beginner video instead of index.html.
 //
 // --scene matches a scene id ("changesets"), its number ("04"), or a prefix.
 // Times are scene-local seconds. Prints the files written and any page errors.
@@ -24,7 +25,7 @@ const renderOpts = { debug: !!opt('debug', false), captions: !opt('no-captions',
 const { chromium } = await loadPlaywright();
 const browser = await chromium.launch();
 try {
-  const { page, errors } = await openRenderer(browser);
+  const { page, errors } = await openRenderer(browser, opt('page', 'index.html'));
   const chapters = await page.evaluate(() => AGX.chapters().map(({ id, title, start, duration }) => ({ id, title, start, duration })));
   const pick = (key) => {
     const k = String(key);

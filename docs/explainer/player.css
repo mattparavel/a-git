@@ -1,0 +1,121 @@
+/* Shared styles for the explainer player pages (index.html, beginner.html). */
+  /* Layout: a screening room. The film fills the main column, chapters run
+     beside it like a reel index, and the full narration sits below. */
+  :root {
+    --bg: #edf2f1;
+    --surface: #ffffff;
+    --ink: #10201f;
+    --muted: #4c6462;
+    --line: #c9d7d5;
+    --accent: #0c776c;
+    --hash: #8f5c00;
+    --stage: #0c181b;
+    --display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Inter", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #091315; --surface: #0f1f22; --ink: #e3eeec; --muted: #8fa7a4;
+      --line: #22403f; --accent: #45c8b8; --hash: #f4ba4e; --stage: #0c181b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #091315; --surface: #0f1f22; --ink: #e3eeec; --muted: #8fa7a4;
+    --line: #22403f; --accent: #45c8b8; --hash: #f4ba4e; --stage: #0c181b;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 16px/1.55 var(--body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; display: grid; gap: 28px; }
+
+  header { display: grid; gap: 8px; }
+  .eyebrow {
+    font: 500 13px/1.3 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 6px 16px;
+  }
+  .eyebrow b { color: var(--hash); font-weight: 600; }
+  h1 {
+    font: 800 clamp(34px, 5.2vw, 64px)/1.02 var(--display);
+    letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+  }
+  .lede { margin: 0; max-width: 64ch; color: var(--muted); font-size: 17px; }
+  .lede code, .note code { font: 500 0.92em var(--mono); color: var(--ink); }
+
+  .theatre { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+  @media (max-width: 980px) { .theatre { grid-template-columns: minmax(0, 1fr); } }
+
+  .player { display: grid; gap: 0; min-width: 0; }
+  .screen {
+    position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9;
+    background: var(--stage); border-radius: 14px 14px 0 0; overflow: hidden;
+    border: 1px solid var(--line); border-bottom: 0;
+  }
+  .screen canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+  .big-play {
+    position: absolute; inset: 0; margin: auto; width: 96px; height: 96px; border-radius: 50%;
+    border: 2px solid rgba(232, 241, 239, 0.85); background: rgba(12, 24, 27, 0.72); color: #e8f1ef;
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .big-play svg { width: 34px; height: 34px; margin-left: 6px; }
+  .big-play:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+    padding: 12px 14px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 0 0 14px 14px;
+  }
+  .controls button, .controls select {
+    font: 500 14px var(--body); color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 8px; height: 36px; padding: 0 12px; cursor: pointer;
+  }
+  .controls button:hover, .controls select:hover { border-color: var(--accent); }
+  .controls button:focus-visible, .controls select:focus-visible, .scrub input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .controls .play { width: 44px; padding: 0; display: grid; place-items: center; }
+  .controls .play svg { width: 16px; height: 16px; fill: currentColor; }
+  .controls button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+  .time { font: 500 14px var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .scrub { position: relative; flex: 1 1 260px; min-width: 0; height: 36px; display: grid; align-items: center; }
+  .scrub input { width: 100%; margin: 0; accent-color: var(--accent); cursor: pointer; }
+  .ticks { position: absolute; left: 8px; right: 8px; top: 4px; height: 6px; pointer-events: none; }
+  .ticks i { position: absolute; top: 0; width: 2px; height: 6px; background: var(--muted); opacity: 0.6; }
+  .spacer { flex: 1 0 0; }
+
+  .chapters { min-width: 0; display: grid; gap: 10px; }
+  .chapters h2, .transcript h2 {
+    font: 700 13px/1.3 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0;
+  }
+  .chapters ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .chapters button {
+    width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: baseline;
+    text-align: left; font: 500 15px/1.35 var(--body); color: var(--ink); background: transparent;
+    border: 0; border-left: 3px solid transparent; padding: 8px 10px; cursor: pointer; border-radius: 0 8px 8px 0;
+  }
+  .chapters button:hover { background: var(--surface); }
+  .chapters button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .chapters button.on { border-left-color: var(--accent); background: var(--surface); }
+  .chapters .n { font: 600 13px var(--mono); color: var(--hash); }
+  .chapters .ts { font: 500 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .transcript { display: grid; gap: 14px; max-width: 78ch; }
+  #transcript { display: grid; gap: 26px; }
+  .transcript section { display: grid; gap: 6px; }
+  .transcript h3 { font: 700 20px/1.25 var(--display); margin: 0; display: flex; gap: 12px; align-items: baseline; }
+  .transcript h3 .ts { font: 500 13px var(--mono); color: var(--muted); }
+  .transcript p { margin: 0; color: var(--muted); }
+  .transcript p.on { color: var(--ink); }
+  .note { color: var(--muted); font-size: 14px; margin: 0; max-width: 78ch; }
+  .note a { color: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }

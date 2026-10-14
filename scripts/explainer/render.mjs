@@ -3,6 +3,7 @@
 //
 //   node scripts/explainer/render.mjs [--out docs/explainer/a-git-explainer.mp4]
 //        [--fps 30] [--workers 3] [--from 0] [--to <seconds>] [--crf 20]
+//        [--page beginner.html]   (which player page's scenes to render)
 //
 // Each worker renders a contiguous range of frames; the ranges are encoded
 // separately and then joined without re-encoding.
@@ -21,6 +22,7 @@ const outFile = resolve(opt('out', join(EXPLAINER_DIR, 'a-git-explainer.mp4')));
 const fps = parseInt(opt('fps', '30'), 10);
 const workers = parseInt(opt('workers', '3'), 10);
 const crf = opt('crf', '20');
+const pageName = opt('page', 'index.html');
 
 function run(cmd, argv, input) {
   return new Promise((res, rej) => {
@@ -38,7 +40,7 @@ const browser = await chromium.launch();
 const work = join(tmpdir(), 'agx-render-' + process.pid);
 mkdirSync(work, { recursive: true });
 try {
-  const probe = await openRenderer(browser);
+  const probe = await openRenderer(browser, pageName);
   const total = await probe.page.evaluate(() => AGX.duration());
   await probe.page.close();
   const from = parseFloat(opt('from', '0'));
@@ -54,7 +56,7 @@ try {
     if (first >= last) return;
     const seg = join(work, `seg${w}.mp4`);
     segments[w] = seg;
-    const { page, errors } = await openRenderer(browser);
+    const { page, errors } = await openRenderer(browser, pageName);
     // Stream PNG frames straight into ffmpeg.
     await run('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
       '-c:v', 'libx264', '-preset', 'slow', '-crf', crf, '-pix_fmt', 'yuv420p', '-tune', 'animation', seg], async (stdin) => {
